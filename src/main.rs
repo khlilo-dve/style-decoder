@@ -161,7 +161,10 @@ async fn fetch_readable_text(client: &Client, url: &str) -> Result<String, Strin
             fetch_fallback_plain(client, url).await
         }
         Err(e) => {
-            eprintln!("[warn] Jina Reader failed: {}, falling back to direct fetch", e);
+            eprintln!(
+                "[warn] Jina Reader failed: {}, falling back to direct fetch",
+                e
+            );
             fetch_fallback_plain(client, url).await
         }
     }
@@ -188,36 +191,26 @@ async fn fetch_fallback_plain(client: &Client, url: &str) -> Result<String, Stri
     if text.is_empty() {
         return Err("Extracted content is empty".to_string());
     }
-    println!("[info] Fallback fetch OK (strip-tags), {} chars", text.len());
+    println!(
+        "[info] Fallback fetch OK (strip-tags), {} chars",
+        text.len()
+    );
     Ok(text)
 }
 
 // ── Style analysis prompt (10 dimensions) ────────────────────────────
 
-const STYLE_ANALYSIS_PROMPT: &str = r#"你是一个写作风格分析专家。用户会给你一篇完整的文章正文，你需要逆向分析该文章的写作风格，并输出一份可以直接作为 system prompt 使用的「风格指令文档」。
-
-输出要求：
-1. 用 Markdown 格式
-2. 涵盖以下维度（如果文章中体现了的话）：
-   - 整体风格定位（如"理性 + 隐喻"、"口语化 + 犀利"等）
-   - 标题策略（标题长度、是否用问句/反问/数字等）
-   - 开头模式（故事切入、金句开头、直接观点等）
-   - 段落节奏（长短交替、短段密集等）
-   - 句式特征（长句/短句偏好、排比、设问等）
-   - 论证手法（类比、举例、数据引用、反直觉等）
-   - 情绪基调（冷静、激昂、反讽、温暖等）
-   - 结尾策略（升华、行动号召、开放式提问等）
-   - 用词偏好（口语/书面、中英混用、领域术语等）
-   - 读者互动方式（如果有的话）
-3. 每个维度给出具体的示例句子或段落片段作为佐证
-4. 最后给出一段可直接作为 system prompt 的「风格复刻指令」
-
-注意：不要评价文章质量，只做风格提取和描述。"#;
+const STYLE_ANALYSIS_PROMPT: &str = include_str!("../prompts/style-analysis.md");
 
 // ── Env helpers ─────────────────────────────────────────────────────
 
 fn env_var(key: &str) -> Result<String, String> {
-    std::env::var(key).map_err(|_| format!("Environment variable `{}` not set. Check your .env file.", key))
+    std::env::var(key).map_err(|_| {
+        format!(
+            "Environment variable `{}` not set. Check your .env file.",
+            key
+        )
+    })
 }
 
 fn env_var_or(key: &str, default: &str) -> String {
@@ -250,7 +243,9 @@ async fn main() {
         eprintln!();
         eprintln!("Environment variables (or .env file):");
         eprintln!("  API_KEY   - Your LLM API key (required)");
-        eprintln!("  BASE_URL  - OpenAI-compatible API base URL (default: https://api.openai.com/v1)");
+        eprintln!(
+            "  BASE_URL  - OpenAI-compatible API base URL (default: https://api.openai.com/v1)"
+        );
         eprintln!("  MODEL     - Model name (default: gpt-4o)");
         process::exit(1);
     }
